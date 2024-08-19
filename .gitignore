@@ -1,0 +1,5 @@
+.venv
+.vscode
+src/patients_tracker/__pycache__
+src/patients_tracker/database/__pycache__
+src/patients_tracker/usecases/__pycache__

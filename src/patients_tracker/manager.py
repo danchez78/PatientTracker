@@ -8,6 +8,14 @@ token = os.getenv("BOT_TOKEN")
 tb = TeleBot(token)
 patient_data = {}
 
+commands = [
+    types.BotCommand(command='start', description='Запустить бота'),
+    types.BotCommand(command='add', description='Добавить пациента'),
+    types.BotCommand(command='list_today', description='Получить список пациентов за сегодня'),
+    types.BotCommand(command='list_week', description='Получить список пациентов за эту неделю'),
+]
+tb.set_my_commands(commands)
+
 
 def start():
     tb.infinity_polling()
@@ -16,8 +24,9 @@ def start():
 @tb.message_handler(commands=["start"])
 def _cmd_start(message: types.Message):
     tb.send_message(message.chat.id, "/add - Добавить пациента\n"
-                                     "/list_today - Список пациентов за сегодня\n"
-                                     "/list_week - Список пациентов за неделю")
+                                     "/list_today - Получить список пациентов за сегодня\n"
+                                     "/list_week - Получить список пациентов за эту неделю\n"
+                                     "Команды всегда доступны в меню")
 
 
 @tb.message_handler(commands=["add"])
