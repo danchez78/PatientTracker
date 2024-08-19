@@ -1,11 +1,13 @@
-from datetime import date, datetime
+import os
 import sqlite3
+from datetime import date
+
 from patients_tracker.database import constants
 from patients_tracker import structures
 
 
 class DataBaseManager:
-    DB_LOCATION = "./patients.db"  # TODO: Environment variable
+    DB_LOCATION = os.getenv("DB_LOCATION")
 
     def __init__(self):
         self.connection = sqlite3.connect(self.DB_LOCATION)
