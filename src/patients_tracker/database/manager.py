@@ -8,7 +8,7 @@ from patients_tracker import structures
 
 
 class DataBaseManager:
-    DB_LOCATION = os.getenv("DB_LOCATION")
+    DB_LOCATION = os.environ["DB_LOCATION"]
 
     def __init__(self):
         self.connection = sqlite3.connect(self.DB_LOCATION)

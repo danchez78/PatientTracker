@@ -1,11 +1,14 @@
 import os
+import functools
 
 from telebot import TeleBot, types
-from patients_tracker import usecases, structures
-from patients_tracker.errors import catch_errors
 
-token = os.getenv("BOT_TOKEN")
+from . import database, errors, structures, usecases
+
+
+token = os.environ["BOT_TOKEN"]
 tb = TeleBot(token)
+
 patient_data = {}
 
 commands = [
@@ -21,8 +24,28 @@ def start():
     tb.infinity_polling()
 
 
-@catch_errors
+def catch_errors(func):
+    @functools.wraps(func)
+    def function_wrapper(message: types.Message, *args, **kwargs):
+        try:
+            return func(message, *args, **kwargs)
+        except (ConnectionError, database.errors.OperationalError) as exc:
+            error = errors.ConnectError(info=f"{exc}")
+        except database.errors.DatabaseInteractionError as exc:
+            error = errors.DatabaseError(message=exc.message, info=exc.info)
+        except usecases.errors.DateError as exc:
+            error = errors.AppError(message=exc.message, info=exc.info)
+        except Exception as exc:
+            error = errors.AppError(message="Unknown error occurred. Investigations is recommended.", info=f"{exc}")
+
+        tb.send_message(message.chat.id, error.info)
+        raise error
+
+    return function_wrapper
+
+
 @tb.message_handler(commands=["start"])
+@catch_errors
 def _cmd_start(message: types.Message):
     tb.send_message(message.chat.id,
                     "<b>/add</b> - Добавить пациента\n"
@@ -33,8 +56,8 @@ def _cmd_start(message: types.Message):
                     )
 
 
-@catch_errors
 @tb.message_handler(commands=["add"])
+@catch_errors
 def _add_patient(message: types.Message):
     sent = tb.send_message(message.chat.id,
                            "Введите ФИО пациента в формате <b>Фамилия Имя Отчество</b>\n",
@@ -44,8 +67,8 @@ def _add_patient(message: types.Message):
     tb.register_next_step_handler(sent, _get_patient_name)
 
 
-@catch_errors
 @tb.message_handler(commands=["list_today"])
+@catch_errors
 def _get_patients_today(message: types.Message):
     patients = []
     for patient in usecases.get_today.get_patients():
@@ -54,8 +77,8 @@ def _get_patients_today(message: types.Message):
     tb.send_message(message.chat.id, patients_msg)
 
 
-@catch_errors
 @tb.message_handler(commands=["list_week"])
+@catch_errors
 def _get_patients_for_week(message: types.Message):
     week = usecases.get_week.get_patients()
     patients_msg = "Список пациентов за эту неделю:\n"

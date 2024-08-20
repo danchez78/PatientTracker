@@ -1,1 +1,1 @@
-from . import get_today, get_week, add_patient
+from . import errors, get_today, get_week, add_patient
