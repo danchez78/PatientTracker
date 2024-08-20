@@ -1,8 +1,10 @@
 from datetime import datetime, time
 from patients_tracker.database import DataBaseManager
+from patients_tracker.usecases.errors import catch_date_errors
 from patients_tracker import structures
 
 
+@catch_date_errors
 def get_patients() -> list:
     patients = []
     today = datetime.now().date()

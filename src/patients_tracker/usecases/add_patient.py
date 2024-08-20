@@ -1,12 +1,14 @@
 import re
-from datetime import datetime, date
+from datetime import datetime
 from patients_tracker.database import DataBaseManager
+from patients_tracker.usecases.errors import catch_date_errors
 from patients_tracker import structures
 
 TIME_100_YEARS = 100 * 365.25 * 24 * 60 * 60
 NAME_TEMPLATE = r'^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$'
 
 
+@catch_date_errors
 def add_patient(fullname: str, date_of_birth: str) -> None:
     patient = structures.Patient(
         fullname=fullname,
@@ -19,26 +21,27 @@ def add_patient(fullname: str, date_of_birth: str) -> None:
         return
 
 
-def check_if_name_is_valid(fullname: str) -> bool:
+def check_if_name_is_valid(fullname: str) -> structures.StatusOfValidation:
     if re.match(NAME_TEMPLATE, fullname):
-        return True
+        return structures.StatusOfValidation.Valid
 
-    return False
+    return structures.StatusOfValidation.InvalidNameFormat
 
 
-def check_if_date_is_valid(insert_date: str) -> bool:
+@catch_date_errors
+def check_if_date_is_valid(insert_date: str) -> structures.StatusOfValidation:
     try:
         date = datetime.strptime(insert_date, "%Y-%m-%d")  # Format
         today = datetime.today()
 
         if date > today:  # Date of birth cannot be more than current date
-            return False
+            return structures.StatusOfValidation.InvalidDateValue
 
         age = today.year - date.year - ((today.month, today.day) < (date.month, date.day))
         if age >= 100:
-            return False
+            return structures.StatusOfValidation.InvalidAge
 
-        return True
+        return structures.StatusOfValidation.Valid
 
     except ValueError:
-        return False
+        return structures.StatusOfValidation.InvalidDateFormat

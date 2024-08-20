@@ -2,7 +2,7 @@ import os
 
 from telebot import TeleBot, types
 from patients_tracker import usecases, structures
-
+from patients_tracker.errors import catch_errors
 
 token = os.getenv("BOT_TOKEN")
 tb = TeleBot(token)
@@ -21,21 +21,30 @@ def start():
     tb.infinity_polling()
 
 
+@catch_errors
 @tb.message_handler(commands=["start"])
 def _cmd_start(message: types.Message):
-    tb.send_message(message.chat.id, "/add - Добавить пациента\n"
-                                     "/list_today - Получить список пациентов за сегодня\n"
-                                     "/list_week - Получить список пациентов за эту неделю\n"
-                                     "Команды всегда доступны в меню")
+    tb.send_message(message.chat.id,
+                    "<b>/add</b> - Добавить пациента\n"
+                    "<b>/list_today</b> - Получить список пациентов за сегодня\n"
+                    "<b>/list_week</b> - Получить список пациентов за эту неделю\n"
+                    "Команды всегда доступны в меню",
+                    parse_mode="HTML"
+                    )
 
 
+@catch_errors
 @tb.message_handler(commands=["add"])
 def _add_patient(message: types.Message):
-    sent = tb.send_message(message.chat.id, "Введите ФИО пациента в формате Фамилия Имя Отчество\n")
+    sent = tb.send_message(message.chat.id,
+                           "Введите ФИО пациента в формате <b>Фамилия Имя Отчество</b>\n",
+                           parse_mode="HTML"
+                           )
     patient_data[message.from_user.id] = {}
     tb.register_next_step_handler(sent, _get_patient_name)
 
 
+@catch_errors
 @tb.message_handler(commands=["list_today"])
 def _get_patients_today(message: types.Message):
     patients = []
@@ -45,6 +54,7 @@ def _get_patients_today(message: types.Message):
     tb.send_message(message.chat.id, patients_msg)
 
 
+@catch_errors
 @tb.message_handler(commands=["list_week"])
 def _get_patients_for_week(message: types.Message):
     week = usecases.get_week.get_patients()
@@ -52,6 +62,7 @@ def _get_patients_for_week(message: types.Message):
     i = 0
     for day in week:
         patients_msg += f"{structures.WEEKDAYS[i]} - {day}\n"
+        i += 1
     tb.send_message(message.chat.id, patients_msg)
 
 
@@ -60,17 +71,23 @@ def _get_patient_name(message: types.Message):
         tb.send_message(message.chat.id, "Добавление нового пациента отменено. \n")
         return
 
-    if usecases.add_patient.check_if_name_is_valid(message.text):
-        sent = tb.send_message(message.chat.id, "Введите дату рождения в формате yyyy-mm-dd\n")
+    valid_status = usecases.add_patient.check_if_name_is_valid(message.text)
+    if valid_status == structures.StatusOfValidation.Valid:
+        sent = tb.send_message(message.chat.id,
+                               "Введите дату рождения в формате <b>yyyy-mm-dd</b>\n",
+                               parse_mode="html"
+                               )
         patient_data[message.from_user.id]["name"] = message.text
         tb.register_next_step_handler(sent, _get_patient_birth)
 
     else:
-        sent = tb.send_message(message.chat.id, "ФИО введены некорректно. \n"
-                                                "Вводите без специальных символов, цифр и пробелов. \n"
-                                                "Дата должна быть существующей и не позднее сегодняшнего дня. \n"
-                                                "Пример: Иванов Иван Иванович\n"
-                                                "Попробуйте еще раз. Для того, чтобы отменить ввод введите /break\n")
+        sent = tb.send_message(message.chat.id,
+                               "ФИО введены некорректно. \n"
+                               f"Ошибка: {valid_status.value}\n"
+                               "Вводите <b>без</b> специальных символов, цифр и пробелов. \n"
+                               "Пример: <b>Иванов Иван Иванович</b>\n"
+                               "Попробуйте еще раз. Для того, чтобы отменить ввод введите <b>/break</b>\n",
+                               parse_mode="html")
         tb.register_next_step_handler(sent, _get_patient_name)
 
 
@@ -79,15 +96,20 @@ def _get_patient_birth(message: types.Message):
         tb.send_message(message.chat.id, "Добавление нового пациента отменено. \n")
         return
 
-    if usecases.add_patient.check_if_date_is_valid(message.text):
+    valid_status = usecases.add_patient.check_if_date_is_valid(message.text)
+    if valid_status == structures.StatusOfValidation.Valid:
         patient_data[message.from_user.id]["date"] = message.text
         _save_patient(message)
 
     else:
-        sent = tb.send_message(message.chat.id, "Дата введена некорректно. \n"
-                                                "Вводите без специальных символов, букв и пробелов.\n"
-                                                "Пример: 2024-8-19\n"
-                                                "Попробуйте еще раз. Для того, чтобы отменить ввод введите /break\n")
+        sent = tb.send_message(message.chat.id,
+                               "Дата введена некорректно. \n"
+                               f"Ошибка: {valid_status.value}\n"
+                               "Вводите <b>без</b> специальных символов, букв и пробелов.\n"
+                               "Пример: <b>2024-8-19</b>\n"
+                               "Попробуйте еще раз. Для того, чтобы отменить ввод введите <b>/break</b>\n",
+                               parse_mode="html"
+                               )
         tb.register_next_step_handler(sent, _get_patient_birth)
 
 

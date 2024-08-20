@@ -1,7 +1,16 @@
 from dataclasses import dataclass
 from datetime import date, datetime
+from enum import StrEnum
 
 WEEKDAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
+
+
+class StatusOfValidation(StrEnum):
+    Valid = ""
+    InvalidNameFormat = "Данные введены в неправильном формате."
+    InvalidDateFormat = "Данные введены в неправильном формате."
+    InvalidDateValue = "Дата не может быть позднее сегодняшнего дня."
+    InvalidAge = "Возраст пациента не может быть более 100 лет."
 
 
 @dataclass

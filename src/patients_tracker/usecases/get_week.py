@@ -1,20 +1,20 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from patients_tracker.database import DataBaseManager
+from patients_tracker.usecases.errors import catch_date_errors
 
 
+@catch_date_errors
 def get_patients():
-    # Получаем текущую дату и день недели
     today = datetime.today()
-    weekday = today.weekday()  # 0 - понедельник, 1 - вторник, ..., 6 - воскресенье
+    weekday = today.weekday()
 
-    # Список для хранения дат
     patients = []
 
     with DataBaseManager() as db:
-        for i in range(weekday + 1):  # +1, чтобы включить сегодняшний день
-            day_date = today - timedelta(days=weekday - i)
-            start_of_day = day_date.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_of_day = day_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+        for i in range(weekday + 1):  # +1 for current day
+            day_date = today - timedelta(days=weekday - i)  # Iteration for all days at week
+            start_of_day = datetime.combine(day_date, time.min)
+            end_of_day = datetime.combine(day_date, time.max)
             patients.append(len(db.get_patients_by_time(start_of_day, end_of_day)))
 
     return patients
