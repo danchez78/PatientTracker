@@ -6,9 +6,11 @@ services:
     environment:
       BOT_TOKEN: your_bot_token
       DB_LOCATION: ./db/patients.db
+      LOG_FILE_LOCATION: ./logs/app.log
       TZ: Europe/Moscow
     volumes:
       - ./db:/app/db
+      - ./logs:/app/logs
     restart: always
     labels:
       log_type: "json"
