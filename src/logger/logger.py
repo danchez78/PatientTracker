@@ -10,7 +10,7 @@ class Logger:
         stdout_handler = logging.StreamHandler(stream=sys.stdout)
 
         logging.basicConfig(
-            format='[%(asctime)s] [%(levelname)s] - %(message)s',
+            format="[%(asctime)s] [%(levelname)s] - %(message)s",
             handlers=[file_handler, stdout_handler],
         )
         logger = logging.getLogger(__name__)
@@ -32,5 +32,3 @@ class Logger:
 
     def critical(self, message: str) -> None:
         self.__logger.critical(message)
-
-

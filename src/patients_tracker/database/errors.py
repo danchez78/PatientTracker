@@ -37,8 +37,7 @@ def catch_database_errors(func):
             raise DatabaseCodeError(f"{exc}")
         except DatabaseError as exc:
             raise DatabaseInteractionError(
-                message="An unknown database error was received.",
-                info=f"{exc}"
+                message="An unknown database error was received.", info=f"{exc}"
             )
 
     return function_wrapper

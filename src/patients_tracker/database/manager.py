@@ -2,9 +2,9 @@ import os
 import sqlite3
 from datetime import date
 
+from patients_tracker import structures
 from patients_tracker.database import constants
 from patients_tracker.database.errors import catch_database_errors
-from patients_tracker import structures
 
 
 class DataBaseManager:
@@ -33,7 +33,9 @@ class DataBaseManager:
 
     @catch_database_errors
     def get_patients_by_time(self, start_date: date, end_date: date) -> list:
-        return self.cursor.execute(constants.SELECT_PATIENTS_BY_VISIT_COMMAND, (start_date, end_date)).fetchall()
+        return self.cursor.execute(
+            constants.SELECT_PATIENTS_BY_VISIT_COMMAND, (start_date, end_date)
+        ).fetchall()
 
     @catch_database_errors
     def _create_table(self) -> None:

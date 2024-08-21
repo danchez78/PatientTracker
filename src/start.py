@@ -3,7 +3,6 @@ import os
 import patients_tracker
 from logger import Logger
 
-
 logger = Logger()
 
 
@@ -18,4 +17,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-    os._exit(1) # noqa
+    os._exit(1)  # noqa

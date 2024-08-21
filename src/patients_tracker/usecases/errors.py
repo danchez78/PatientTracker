@@ -3,6 +3,7 @@ import functools
 
 class DateError(Exception):
     """Base exception for working with dates"""
+
     def __init__(self, info: str):
         self.message = "An unknown error occurred while working with the date format"
         self.info = info

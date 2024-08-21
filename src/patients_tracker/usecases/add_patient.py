@@ -1,11 +1,12 @@
 import re
 from datetime import datetime
+
+from patients_tracker import structures
 from patients_tracker.database import DataBaseManager
 from patients_tracker.usecases.errors import catch_date_errors
-from patients_tracker import structures
 
 TIME_100_YEARS = 100 * 365.25 * 24 * 60 * 60
-NAME_TEMPLATE = r'^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$'
+NAME_TEMPLATE = r"^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$"
 
 
 @catch_date_errors
@@ -13,7 +14,7 @@ def add_patient(fullname: str, date_of_birth: str) -> None:
     patient = structures.Patient(
         fullname=fullname,
         date_of_birth=datetime.strptime(date_of_birth, "%Y-%m-%d").date(),
-        time_of_visit=datetime.now()
+        time_of_visit=datetime.now(),
     )
 
     with DataBaseManager() as db:
@@ -37,7 +38,9 @@ def check_if_date_is_valid(insert_date: str) -> structures.StatusOfValidation:
         if date > today:  # Date of birth cannot be more than current date
             return structures.StatusOfValidation.InvalidDateValue
 
-        age = today.year - date.year - ((today.month, today.day) < (date.month, date.day))
+        age = (
+            today.year - date.year - ((today.month, today.day) < (date.month, date.day))
+        )
         if age >= 100:
             return structures.StatusOfValidation.InvalidAge
 
